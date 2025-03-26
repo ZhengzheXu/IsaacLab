@@ -164,7 +164,14 @@ class ObservationManager(ManagerBase):
                 self._group_obs_term_dim[group_name],
             ):
                 data_length = np.prod(shape)
-                term = data[env_idx, idx : idx + data_length]
+                # [num_envs, data_length]
+                if len(shape) == 1: 
+                    term = data[env_idx, idx : idx + data_length]
+                # [num_envs, history_length, data_length]
+                elif len(shape) == 2: 
+                    term = data.permute(0,2,1).flatten(1)[env_idx, idx : idx + data_length]
+                else:
+                    raise ValueError(f"Unsupported shape for term '{name}' in group '{group_name}'.")
                 terms.append((group_name + "-" + name, term.cpu().tolist()))
                 idx += data_length
 
